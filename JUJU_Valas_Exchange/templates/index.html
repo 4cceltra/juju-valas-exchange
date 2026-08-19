@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>JUJU Valas Exchange</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+<div class="ambient ambient-one"></div>
+<div class="ambient ambient-two"></div>
+
+<header class="topbar">
+    <a class="brand" href="/">
+        <span class="brand-mark">V</span>
+        <span>
+            <strong>JUJU</strong>
+            <small>PRIVATE EXCHANGE</small>
+        </span>
+    </a>
+
+    <div class="status">
+        <span class="pulse"></span>
+        <span>MARKET DATA LIVE</span>
+    </div>
+</header>
+
+<main>
+    <section class="hero">
+        <div class="hero-copy">
+            <div class="eyebrow">PREMIUM CURRENCY EXCHANGE</div>
+            <h1>Global currencies.<br><em>Priced beautifully.</em></h1>
+            <p>Nilai tukar real-time berbasis data pasar dengan spread transparan 0,90%.</p>
+
+            <div class="hero-meta">
+                <div>
+                    <span>LAST UPDATED</span>
+                    <strong id="updated">{{ updated }}</strong>
+                </div>
+                <div class="divider"></div>
+                <div>
+                    <span>MARKET SOURCE</span>
+                    <strong>Yahoo Finance</strong>
+                </div>
+            </div>
+        </div>
+
+        <div class="hero-card">
+            <div class="hero-card-top">
+                <span>OUR PRICING</span>
+                <span class="tag">0.90% SPREAD</span>
+            </div>
+            <div class="hero-rate">±0.45%</div>
+            <p>Adjustment from mid-market rate on each side.</p>
+            <div class="line"></div>
+            <div class="pricing-row">
+                <span>BUY</span><strong>− 0.45%</strong>
+            </div>
+            <div class="pricing-row">
+                <span>SELL</span><strong>+ 0.45%</strong>
+            </div>
+        </div>
+    </section>
+
+    <section class="toolbar">
+        <div>
+            <span class="section-label">EXCHANGE BOARD</span>
+            <h2>Today's rates</h2>
+        </div>
+        <div class="toolbar-actions">
+            <div class="search">
+                <span>⌕</span>
+                <input id="search" type="text" placeholder="Search currency...">
+            </div>
+            <button id="refreshBtn" class="refresh">
+                <span>↻</span> Refresh
+            </button>
+        </div>
+    </section>
+
+    <section class="rate-grid" id="rateGrid">
+        {% for r in rates %}
+        <article class="rate-card" data-code="{{ r.code }}" data-name="{{ r.name }}">
+            <div class="card-head">
+                <div class="currency-icon">{{ r.code[0] }}</div>
+                <div class="currency-title">
+                    <strong>{{ r.code }}</strong>
+                    <span>{{ r.name }}</span>
+                </div>
+                <div class="chevron">↗</div>
+            </div>
+
+            {% if r.mid %}
+            <div class="mid">
+                <span>MARKET MID</span>
+                <strong>Rp {{ "{:,.2f}".format(r.mid).replace(",", "X").replace(".", ",").replace("X", ".") }}</strong>
+            </div>
+            <div class="quote-row">
+                <div class="quote buy">
+                    <span>BUY</span>
+                    <strong>Rp {{ "{:,.2f}".format(r.buy).replace(",", "X").replace(".", ",").replace("X", ".") }}</strong>
+                </div>
+                <div class="quote sell">
+                    <span>SELL</span>
+                    <strong>Rp {{ "{:,.2f}".format(r.sell).replace(",", "X").replace(".", ",").replace("X", ".") }}</strong>
+                </div>
+            </div>
+            {% else %}
+            <div class="unavailable">Rate temporarily unavailable</div>
+            {% endif %}
+        </article>
+        {% endfor %}
+    </section>
+
+    <section class="info-strip">
+        <div class="info-icon">i</div>
+        <div>
+            <strong>Transparent pricing</strong>
+            <p>Harga beli menggunakan mid-market −0,45%, sedangkan harga jual menggunakan mid-market +0,45%. Total spread: 0,90%.</p>
+        </div>
+    </section>
+</main>
+
+<footer>
+    <span>JUJU VALAS EXCHANGE</span>
+    <span>Market reference • Yahoo Finance • IDR base</span>
+</footer>
+
+<script>
+const search = document.getElementById("search");
+const cards = document.querySelectorAll(".rate-card");
+const refreshBtn = document.getElementById("refreshBtn");
+
+search.addEventListener("input", () => {
+    const q = search.value.toLowerCase().trim();
+    cards.forEach(card => {
+        const match = (card.dataset.code + " " + card.dataset.name).toLowerCase().includes(q);
+        card.style.display = match ? "" : "none";
+    });
+});
+
+refreshBtn.addEventListener("click", async () => {
+    refreshBtn.classList.add("loading");
+    refreshBtn.innerHTML = "<span>↻</span> Updating...";
+    try {
+        const response = await fetch("/api/rates");
+        const data = await response.json();
+        localStorage.setItem("lastRefresh", Date.now());
+        window.location.reload();
+    } catch (err) {
+        alert("Gagal mengambil data. Pastikan koneksi internet tersedia.");
+    } finally {
+        refreshBtn.classList.remove("loading");
+    }
+});
+</script>
+</body>
+</html>
