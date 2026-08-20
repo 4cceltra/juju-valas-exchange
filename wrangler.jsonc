@@ -1,0 +1,10 @@
+{
+  "name": "juju-valas-exchange",
+  "main": "public/_worker.js",
+  "compatibility_date": "2026-08-20",
+  "assets": {
+    "directory": "./public",
+    "binding": "ASSETS",
+    "run_worker_first": ["/api/*"]
+  }
+}
